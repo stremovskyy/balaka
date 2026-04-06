@@ -10,6 +10,7 @@ Balaka runs the speech model on your machine. There is no remote inference fallb
 
 - Local FastAPI API for speech synthesis
 - Separate build-free frontend in `frontend/`
+- English-first UI with optional Ukrainian interface localization
 - Two working modes:
   - TTS with voice design
   - Voice cloning from a reference recording
@@ -96,8 +97,10 @@ make smoke
 1. Open `/tts/`
 2. Leave advanced settings collapsed
 3. Enter text
-4. Click `Озвучити текст`
+4. Click `Generate speech`
 5. Listen in the built-in player or download the generated WAV
+
+The interface defaults to English. Use the `EN` / `UA` toggle in the header to switch the frontend locale; the selection is stored in the browser.
 
 The default frontend setup is tuned for a convenient out-of-the-box result:
 

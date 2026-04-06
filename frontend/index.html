@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="uk">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -23,33 +23,54 @@
 
       <main class="layout">
         <section class="hero">
-          <p class="eyebrow">Balaka</p>
-          <h1>Balaka.</h1>
+          <p class="eyebrow" data-i18n="hero.eyebrow">Balaka</p>
+          <h1 data-i18n="hero.title">Balaka.</h1>
           <div class="hero-meta">
-            <span id="api-status" class="status-pill status-pill-loading">Завантаження параметрів...</span>
+            <span id="api-status" class="status-pill status-pill-loading" data-i18n="api.loading">
+              Loading configuration...
+            </span>
+            <div class="locale-switch" role="group" data-i18n-aria-label="locale.label">
+              <button type="button" class="locale-button is-active" data-locale="en" aria-pressed="true">EN</button>
+              <button type="button" class="locale-button" data-locale="uk" aria-pressed="false">UA</button>
+            </div>
           </div>
         </section>
 
         <section class="card composer-card">
-          <div class="mode-switch" role="tablist" aria-label="Режим TTS">
-            <button type="button" class="mode-button is-active" data-mode="design" role="tab" aria-selected="true">
+          <div class="mode-switch" role="tablist" data-i18n-aria-label="modes.label">
+            <button
+              type="button"
+              class="mode-button is-active"
+              data-mode="design"
+              data-i18n="modes.design"
+              role="tab"
+              aria-selected="true"
+            >
               TTS
             </button>
-            <button type="button" class="mode-button" data-mode="clone" role="tab" aria-selected="false">
-              Клонування голосу
+            <button
+              type="button"
+              class="mode-button"
+              data-mode="clone"
+              data-i18n="modes.clone"
+              role="tab"
+              aria-selected="false"
+            >
+              Voice clone
             </button>
           </div>
 
           <form id="tts-form" class="composer-form">
             <div class="field-grid">
               <label class="field field-wide">
-                <span>Текст для озвучення</span>
+                <span data-i18n="composer.text.label">Text to synthesize</span>
                 <textarea
                   id="text"
                   name="text"
                   rows="5"
                   maxlength="4000"
-                  placeholder="Введіть текст українською або іншою мовою для синтезу..."
+                  placeholder="Enter text in Ukrainian or another language for synthesis..."
+                  data-i18n-placeholder="composer.text.placeholder"
                   required
                 ></textarea>
               </label>
@@ -57,50 +78,61 @@
 
             <section class="mode-panel is-hidden" data-panel="clone">
               <div class="section-heading">
-                <h2>Клонування голосу</h2>
-                <p>Завантажте чистий референсний запис і його розшифровку.</p>
+                <h2 data-i18n="composer.clone.heading">Voice cloning</h2>
+                <p data-i18n="composer.clone.description">
+                  Upload a clean reference recording and its transcript.
+                </p>
               </div>
 
               <div class="field-grid">
                 <label class="field">
-                  <span>Референсний аудіофайл</span>
+                  <span data-i18n="composer.clone.audioLabel">Reference audio file</span>
                   <input id="reference-audio" name="reference_audio" type="file" accept="audio/*" />
                 </label>
 
                 <label class="field field-wide">
-                  <span>Текст референсу</span>
+                  <span data-i18n="composer.clone.textLabel">Reference transcript</span>
                   <textarea
                     id="reference-text"
                     name="reference_text"
                     rows="3"
                     maxlength="4000"
-                    placeholder="Вставте текст, який звучить у завантаженому аудіо..."
+                    placeholder="Paste the text spoken in the uploaded audio..."
+                    data-i18n-placeholder="composer.clone.placeholder"
                   ></textarea>
                 </label>
               </div>
             </section>
 
             <details class="advanced-panel">
-              <summary>Налаштування голосу та генерації</summary>
-              <p class="advanced-copy">
-                За замовчуванням використовується український жіночий голос з рекомендованими
-                параметрами моделі. Відкривайте цей блок лише якщо треба вручну змінити голос
-                або якість синтезу.
+              <summary data-i18n="composer.advanced.summary">Voice and generation settings</summary>
+              <p class="advanced-copy" data-i18n="composer.advanced.description">
+                By default, Balaka uses a Ukrainian female voice with recommended model parameters.
+                Open this section only if you need to change voice or synthesis quality manually.
               </p>
 
               <div class="field-grid advanced-grid">
                 <label class="field">
-                  <span>Мова</span>
+                  <span data-i18n="composer.advanced.languageLabel">Language</span>
                   <select id="language" name="language"></select>
                 </label>
 
                 <label class="field">
-                  <span>Тривалість, сек. (необов'язково)</span>
-                  <input id="duration" name="duration" type="number" min="0.5" max="120" step="0.1" placeholder="Авто" />
+                  <span data-i18n="composer.advanced.durationLabel">Duration, sec. (optional)</span>
+                  <input
+                    id="duration"
+                    name="duration"
+                    type="number"
+                    min="0.5"
+                    max="120"
+                    step="0.1"
+                    placeholder="Auto"
+                    data-i18n-placeholder="composer.advanced.durationPlaceholder"
+                  />
                 </label>
 
                 <label class="field field-wide">
-                  <span>Швидкість</span>
+                  <span data-i18n="composer.advanced.speedLabel">Speed</span>
                   <input id="speed" name="speed" type="range" min="0.5" max="1.5" step="0.05" value="1" />
                   <output id="speed-value" for="speed">1.00x</output>
                 </label>
@@ -108,27 +140,29 @@
 
               <section class="mode-panel advanced-section" data-panel="design">
                 <div class="section-heading">
-                  <h2>Параметри голосу</h2>
-                  <p>Тонке налаштування голосу для стандартного TTS.</p>
+                  <h2 data-i18n="composer.voice.heading">Voice design</h2>
+                  <p data-i18n="composer.voice.description">Fine-tune the voice for standard TTS.</p>
                 </div>
 
                 <div class="field-grid advanced-grid" id="design-attributes"></div>
               </section>
 
               <div class="section-heading advanced-section">
-                <h2>Якість генерації</h2>
-                <p>Залишайте ці значення без змін, якщо не тестуєте модель вручну.</p>
+                <h2 data-i18n="composer.quality.heading">Generation quality</h2>
+                <p data-i18n="composer.quality.description">
+                  Leave these values unchanged unless you are testing the model manually.
+                </p>
               </div>
 
               <div class="field-grid advanced-grid">
                 <label class="field">
-                  <span>Кроки генерації</span>
+                  <span data-i18n="composer.quality.stepsLabel">Generation steps</span>
                   <input id="num-steps" name="num_steps" type="range" min="4" max="64" step="1" value="32" />
                   <output id="num-steps-value" for="num-steps">32</output>
                 </label>
 
                 <label class="field">
-                  <span>Сила підказки</span>
+                  <span data-i18n="composer.quality.guidanceLabel">Guidance scale</span>
                   <input
                     id="guidance-scale"
                     name="guidance_scale"
@@ -143,39 +177,50 @@
 
                 <label class="field checkbox-field">
                   <input id="denoise" name="denoise" type="checkbox" checked />
-                  <span>Шумозаглушення</span>
+                  <span data-i18n="composer.quality.denoiseLabel">Denoise audio</span>
                 </label>
 
                 <label class="field checkbox-field">
                   <input id="preprocess-prompt" name="preprocess_prompt" type="checkbox" checked />
-                  <span>Попередня обробка промпту</span>
+                  <span data-i18n="composer.quality.preprocessLabel">Preprocess prompt</span>
                 </label>
 
                 <label class="field checkbox-field">
                   <input id="postprocess-output" name="postprocess_output" type="checkbox" checked />
-                  <span>Постобробка аудіо</span>
+                  <span data-i18n="composer.quality.postprocessLabel">Postprocess audio</span>
                 </label>
               </div>
             </details>
 
             <div class="form-actions">
-              <button id="submit-button" type="submit" class="primary-button">Озвучити текст</button>
-              <p id="status-text" class="status-text" aria-live="polite">Готово до синтезу.</p>
+              <button id="submit-button" type="submit" class="primary-button" data-i18n="composer.submit">
+                Generate speech
+              </button>
+              <p id="status-text" class="status-text" aria-live="polite" data-i18n="status.ready">
+                Ready to synthesize.
+              </p>
             </div>
           </form>
         </section>
 
         <section class="card result-card">
           <div class="section-heading">
-            <h2>Результат</h2>
-            <p>Тут з'явиться прослуховування і посилання на завантаження аудіо.</p>
+            <h2 data-i18n="result.heading">Result</h2>
+            <p data-i18n="result.description">Playback and download link will appear here.</p>
           </div>
 
-          <div id="result-empty" class="result-empty">Аудіо ще не згенеровано.</div>
+          <div id="result-empty" class="result-empty" data-i18n="result.empty">No audio generated yet.</div>
 
           <div id="result-content" class="result-content is-hidden">
             <audio id="result-player" controls preload="metadata"></audio>
-            <a id="result-download" class="download-link" download="balaka-output.wav">Завантажити аудіо</a>
+            <a
+              id="result-download"
+              class="download-link"
+              download="balaka-output.wav"
+              data-i18n="result.download"
+            >
+              Download audio
+            </a>
           </div>
         </section>
       </main>

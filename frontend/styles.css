@@ -105,6 +105,10 @@ select {
 
 .hero-meta {
   margin-top: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .status-pill {
@@ -130,6 +134,39 @@ select {
 
 .status-pill-error {
   color: var(--accent-strong);
+}
+
+.locale-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+}
+
+.locale-button {
+  border: 0;
+  min-width: 3rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: 160ms ease;
+}
+
+.locale-button:hover {
+  color: var(--text);
+}
+
+.locale-button.is-active {
+  background: var(--text);
+  color: #fff5e9;
 }
 
 .card {
@@ -353,5 +390,15 @@ select {
 
   .hero h1 {
     max-width: none;
+  }
+
+  .hero-meta {
+    align-items: stretch;
+  }
+
+  .status-pill,
+  .locale-switch {
+    width: 100%;
+    justify-content: center;
   }
 }

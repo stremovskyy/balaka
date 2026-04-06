@@ -88,6 +88,20 @@ def test_metadata_endpoint() -> None:
     assert payload["languages"] == ["Auto", "English", "Ukrainian"]
 
 
+def test_frontend_defaults_to_english_ui() -> None:
+    client, _ = make_client()
+
+    response = client.get("/tts/")
+
+    assert response.status_code == 200
+    html = response.text
+    assert '<html lang="en">' in html
+    assert "Voice clone" in html
+    assert "Generate speech" in html
+    assert 'data-locale="en"' in html
+    assert 'data-locale="uk"' in html
+
+
 def test_design_endpoint_returns_audio() -> None:
     client, service = make_client()
 

@@ -1,5 +1,8 @@
 const API_BASE = "/api/v1/tts";
-const DEFAULT_LANGUAGE = "Ukrainian";
+const DEFAULT_UI_LOCALE = "en";
+const DEFAULT_TTS_LANGUAGE = "Ukrainian";
+const LOCALE_STORAGE_KEY = "balaka.ui.locale";
+const SUPPORTED_LOCALES = ["en", "uk"];
 const DESIGN_FIELDS = ["gender", "age", "pitch", "style", "accent", "dialect"];
 const DEFAULT_DESIGN_VALUES = {
   gender: "female",
@@ -9,74 +12,289 @@ const DEFAULT_DESIGN_VALUES = {
   accent: "Auto",
   dialect: "Auto",
 };
-const ATTRIBUTE_LABELS = {
-  gender: "Стать",
-  age: "Вік",
-  pitch: "Висота голосу",
-  style: "Стиль",
-  accent: "Акцент",
-  dialect: "Діалект",
-};
-const VALUE_LABELS = {
-  auto: "Авто",
-  english: "Англійська",
-  ukrainian: "Українська",
-  french: "Французька",
-  german: "Німецька",
-  spanish: "Іспанська",
-  italian: "Італійська",
-  portuguese: "Португальська",
-  polish: "Польська",
-  dutch: "Нідерландська",
-  czech: "Чеська",
-  romanian: "Румунська",
-  turkish: "Турецька",
-  arabic: "Арабська",
-  hindi: "Гінді",
-  chinese: "Китайська",
-  cantonese: "Кантонська",
-  japanese: "Японська",
-  korean: "Корейська",
-  male: "Чоловічий",
-  female: "Жіночий",
-  child: "Дитина",
-  teenager: "Підліток",
-  "young adult": "Молода доросла",
-  "middle-aged": "Середній вік",
-  elderly: "Літня",
-  "very low pitch": "Дуже низький",
-  "low pitch": "Низький",
-  "moderate pitch": "Середній",
-  "high pitch": "Високий",
-  "very high pitch": "Дуже високий",
-  whisper: "Шепіт",
-  "american accent": "Американський",
-  "australian accent": "Австралійський",
-  "british accent": "Британський",
-  "canadian accent": "Канадський",
-  "chinese accent": "Китайський",
-  "indian accent": "Індійський",
-  "japanese accent": "Японський",
-  "korean accent": "Корейський",
-  "portuguese accent": "Португальський",
-  "russian accent": "Російський",
-  "河南话": "Хенаньський діалект",
-  "陕西话": "Шеньсійський діалект",
-  "四川话": "Сичуаньський діалект",
-  "贵州话": "Гуйчжоуський діалект",
-  "云南话": "Юньнаньський діалект",
-  "桂林话": "Гуйлінський діалект",
-  "济南话": "Цзінаньський діалект",
-  "石家庄话": "Шицзячжуанський діалект",
-  "甘肃话": "Ґаньсуський діалект",
-  "宁夏话": "Нінсяський діалект",
-  "青岛话": "Ціндаоський діалект",
-  "东北话": "Північно-східний діалект",
+
+const UI_COPY = {
+  en: {
+    pageTitle: "Balaka TTS",
+    hero: {
+      eyebrow: "Balaka",
+      title: "Balaka.",
+    },
+    locale: {
+      label: "Interface language",
+    },
+    modes: {
+      label: "TTS mode",
+      design: "TTS",
+      clone: "Voice clone",
+    },
+    composer: {
+      text: {
+        label: "Text to synthesize",
+        placeholder: "Enter text in Ukrainian or another language for synthesis...",
+      },
+      clone: {
+        heading: "Voice cloning",
+        description: "Upload a clean reference recording and its transcript.",
+        audioLabel: "Reference audio file",
+        textLabel: "Reference transcript",
+        placeholder: "Paste the text spoken in the uploaded audio...",
+      },
+      advanced: {
+        summary: "Voice and generation settings",
+        description:
+          "By default, Balaka uses a Ukrainian female voice with recommended model parameters. Open this section only if you need to change voice or synthesis quality manually.",
+        languageLabel: "Language",
+        durationLabel: "Duration, sec. (optional)",
+        durationPlaceholder: "Auto",
+        speedLabel: "Speed",
+      },
+      voice: {
+        heading: "Voice design",
+        description: "Fine-tune the voice for standard TTS.",
+      },
+      quality: {
+        heading: "Generation quality",
+        description: "Leave these values unchanged unless you are testing the model manually.",
+        stepsLabel: "Generation steps",
+        guidanceLabel: "Guidance scale",
+        denoiseLabel: "Denoise audio",
+        preprocessLabel: "Preprocess prompt",
+        postprocessLabel: "Postprocess audio",
+      },
+      submit: "Generate speech",
+    },
+    status: {
+      ready: "Ready to synthesize.",
+      generating: "Generating audio...",
+      metadataError: "Unable to load TTS settings.",
+      unexpected: "Unexpected error.",
+      audioError: "Unable to generate audio.",
+      done: "Done.",
+    },
+    api: {
+      loading: "Loading configuration...",
+      unavailable: "Configuration unavailable.",
+      ready: ({ count }) => `Local backend ready. ${count} ${count === 1 ? "language" : "languages"} available.`,
+    },
+    result: {
+      heading: "Result",
+      description: "Playback and download link will appear here.",
+      empty: "No audio generated yet.",
+      download: "Download audio",
+    },
+    attributes: {
+      gender: "Gender",
+      age: "Age",
+      pitch: "Pitch",
+      style: "Style",
+      accent: "Accent",
+      dialect: "Dialect",
+    },
+    values: {
+      auto: "Auto",
+      english: "English",
+      ukrainian: "Ukrainian",
+      french: "French",
+      german: "German",
+      spanish: "Spanish",
+      italian: "Italian",
+      portuguese: "Portuguese",
+      polish: "Polish",
+      dutch: "Dutch",
+      czech: "Czech",
+      romanian: "Romanian",
+      turkish: "Turkish",
+      arabic: "Arabic",
+      hindi: "Hindi",
+      chinese: "Chinese",
+      cantonese: "Cantonese",
+      japanese: "Japanese",
+      korean: "Korean",
+      male: "Male",
+      "male / 男": "Male",
+      female: "Female",
+      child: "Child",
+      teenager: "Teenager",
+      "young adult": "Young adult",
+      "middle-aged": "Middle-aged",
+      elderly: "Elderly",
+      "very low pitch": "Very low",
+      "low pitch": "Low",
+      "moderate pitch": "Moderate",
+      "high pitch": "High",
+      "very high pitch": "Very high",
+      whisper: "Whisper",
+      "american accent": "American",
+      "australian accent": "Australian",
+      "british accent": "British",
+      "canadian accent": "Canadian",
+      "chinese accent": "Chinese",
+      "indian accent": "Indian",
+      "japanese accent": "Japanese",
+      "korean accent": "Korean",
+      "portuguese accent": "Portuguese",
+      "russian accent": "Russian",
+      "河南话": "Henan dialect",
+      "陕西话": "Shaanxi dialect",
+      "四川话": "Sichuan dialect",
+      "贵州话": "Guizhou dialect",
+      "云南话": "Yunnan dialect",
+      "桂林话": "Guilin dialect",
+      "济南话": "Jinan dialect",
+      "石家庄话": "Shijiazhuang dialect",
+      "甘肃话": "Gansu dialect",
+      "宁夏话": "Ningxia dialect",
+      "青岛话": "Qingdao dialect",
+      "东北话": "Northeastern dialect",
+    },
+  },
+  uk: {
+    pageTitle: "Balaka TTS",
+    hero: {
+      eyebrow: "Balaka",
+      title: "Balaka.",
+    },
+    locale: {
+      label: "Мова інтерфейсу",
+    },
+    modes: {
+      label: "Режим TTS",
+      design: "TTS",
+      clone: "Клонування голосу",
+    },
+    composer: {
+      text: {
+        label: "Текст для озвучення",
+        placeholder: "Введіть текст українською або іншою мовою для синтезу...",
+      },
+      clone: {
+        heading: "Клонування голосу",
+        description: "Завантажте чистий референсний запис і його розшифровку.",
+        audioLabel: "Референсний аудіофайл",
+        textLabel: "Текст референсу",
+        placeholder: "Вставте текст, який звучить у завантаженому аудіо...",
+      },
+      advanced: {
+        summary: "Налаштування голосу та генерації",
+        description:
+          "За замовчуванням використовується український жіночий голос з рекомендованими параметрами моделі. Відкривайте цей блок лише якщо треба вручну змінити голос або якість синтезу.",
+        languageLabel: "Мова",
+        durationLabel: "Тривалість, сек. (необов'язково)",
+        durationPlaceholder: "Авто",
+        speedLabel: "Швидкість",
+      },
+      voice: {
+        heading: "Параметри голосу",
+        description: "Тонке налаштування голосу для стандартного TTS.",
+      },
+      quality: {
+        heading: "Якість генерації",
+        description: "Залишайте ці значення без змін, якщо не тестуєте модель вручну.",
+        stepsLabel: "Кроки генерації",
+        guidanceLabel: "Сила підказки",
+        denoiseLabel: "Шумозаглушення",
+        preprocessLabel: "Попередня обробка промпту",
+        postprocessLabel: "Постобробка аудіо",
+      },
+      submit: "Озвучити текст",
+    },
+    status: {
+      ready: "Готово до синтезу.",
+      generating: "Генерую аудіо...",
+      metadataError: "Не вдалося завантажити параметри TTS.",
+      unexpected: "Непередбачена помилка.",
+      audioError: "Не вдалося згенерувати аудіо.",
+      done: "Готово.",
+    },
+    api: {
+      loading: "Завантаження параметрів...",
+      unavailable: "Конфігурація недоступна.",
+      ready: ({ count }) => `Локальний бекенд готовий. Доступно мов: ${count}.`,
+    },
+    result: {
+      heading: "Результат",
+      description: "Тут з'явиться прослуховування і посилання на завантаження аудіо.",
+      empty: "Аудіо ще не згенеровано.",
+      download: "Завантажити аудіо",
+    },
+    attributes: {
+      gender: "Стать",
+      age: "Вік",
+      pitch: "Висота голосу",
+      style: "Стиль",
+      accent: "Акцент",
+      dialect: "Діалект",
+    },
+    values: {
+      auto: "Авто",
+      english: "Англійська",
+      ukrainian: "Українська",
+      french: "Французька",
+      german: "Німецька",
+      spanish: "Іспанська",
+      italian: "Італійська",
+      portuguese: "Португальська",
+      polish: "Польська",
+      dutch: "Нідерландська",
+      czech: "Чеська",
+      romanian: "Румунська",
+      turkish: "Турецька",
+      arabic: "Арабська",
+      hindi: "Гінді",
+      chinese: "Китайська",
+      cantonese: "Кантонська",
+      japanese: "Японська",
+      korean: "Корейська",
+      male: "Чоловічий",
+      "male / 男": "Чоловічий",
+      female: "Жіночий",
+      child: "Дитина",
+      teenager: "Підліток",
+      "young adult": "Молода доросла",
+      "middle-aged": "Середній вік",
+      elderly: "Літня",
+      "very low pitch": "Дуже низький",
+      "low pitch": "Низький",
+      "moderate pitch": "Середній",
+      "high pitch": "Високий",
+      "very high pitch": "Дуже високий",
+      whisper: "Шепіт",
+      "american accent": "Американський",
+      "australian accent": "Австралійський",
+      "british accent": "Британський",
+      "canadian accent": "Канадський",
+      "chinese accent": "Китайський",
+      "indian accent": "Індійський",
+      "japanese accent": "Японський",
+      "korean accent": "Корейський",
+      "portuguese accent": "Португальський",
+      "russian accent": "Російський",
+      "河南话": "Хенаньський діалект",
+      "陕西话": "Шеньсійський діалект",
+      "四川话": "Сичуаньський діалект",
+      "贵州话": "Гуйчжоуський діалект",
+      "云南话": "Юньнаньський діалект",
+      "桂林话": "Гуйлінський діалект",
+      "济南话": "Цзінаньський діалект",
+      "石家庄话": "Шицзячжуанський діалект",
+      "甘肃话": "Ґаньсуський діалект",
+      "宁夏话": "Нінсяський діалект",
+      "青岛话": "Ціндаоський діалект",
+      "东北话": "Північно-східний діалект",
+    },
+  },
 };
 
 const state = {
   mode: "design",
+  locale: getStoredLocale(),
+  metadata: null,
   objectUrl: null,
+  apiStatusKey: "api.loading",
+  apiStatusParams: {},
+  statusKey: "status.ready",
+  statusParams: {},
 };
 
 const dom = {
@@ -85,6 +303,7 @@ const dom = {
   statusText: document.getElementById("status-text"),
   modeButtons: document.querySelectorAll(".mode-button"),
   modePanels: document.querySelectorAll(".mode-panel"),
+  localeButtons: document.querySelectorAll(".locale-button"),
   resultEmpty: document.getElementById("result-empty"),
   resultContent: document.getElementById("result-content"),
   resultPlayer: document.getElementById("result-player"),
@@ -114,13 +333,97 @@ const RANGE_FIELDS = [
   { input: dom.guidanceScale, output: dom.guidanceScaleValue, format: (value) => Number(value).toFixed(1) },
 ];
 
+function getStoredLocale() {
+  try {
+    const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+    return SUPPORTED_LOCALES.includes(stored) ? stored : DEFAULT_UI_LOCALE;
+  } catch {
+    return DEFAULT_UI_LOCALE;
+  }
+}
+
+function persistLocale(locale) {
+  try {
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+  } catch {
+    // Ignore storage failures and keep working with the in-memory locale.
+  }
+}
+
+function normalizeKey(value) {
+  return String(value).trim().toLowerCase();
+}
+
+function resolveCopy(key) {
+  return key.split(".").reduce((branch, part) => branch?.[part], UI_COPY[state.locale]);
+}
+
+function translate(key, params = {}) {
+  const value = resolveCopy(key);
+  if (typeof value === "function") {
+    return value(params);
+  }
+  return value ?? key;
+}
+
 function setApiStatus(text, kind) {
+  state.apiStatusKey = null;
+  state.apiStatusParams = {};
   dom.apiStatus.textContent = text;
   dom.apiStatus.className = `status-pill status-pill-${kind}`;
 }
 
+function setApiStatusFromKey(key, kind, params = {}) {
+  state.apiStatusKey = key;
+  state.apiStatusParams = params;
+  dom.apiStatus.textContent = translate(key, params);
+  dom.apiStatus.className = `status-pill status-pill-${kind}`;
+}
+
 function setStatus(text) {
+  state.statusKey = null;
+  state.statusParams = {};
   dom.statusText.textContent = text;
+}
+
+function setStatusFromKey(key, params = {}) {
+  state.statusKey = key;
+  state.statusParams = params;
+  dom.statusText.textContent = translate(key, params);
+}
+
+function refreshDynamicCopy() {
+  if (state.apiStatusKey) {
+    dom.apiStatus.textContent = translate(state.apiStatusKey, state.apiStatusParams);
+  }
+  if (state.statusKey) {
+    dom.statusText.textContent = translate(state.statusKey, state.statusParams);
+  }
+}
+
+function applyStaticTranslations() {
+  document.documentElement.lang = state.locale;
+  document.title = translate("pageTitle");
+
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = translate(node.dataset.i18n);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    node.setAttribute("placeholder", translate(node.dataset.i18nPlaceholder));
+  });
+
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((node) => {
+    node.setAttribute("aria-label", translate(node.dataset.i18nAriaLabel));
+  });
+}
+
+function updateLocaleButtons() {
+  dom.localeButtons.forEach((button) => {
+    const active = button.dataset.locale === state.locale;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
 }
 
 function localizeValue(value) {
@@ -128,7 +431,33 @@ function localizeValue(value) {
     return value;
   }
 
-  return VALUE_LABELS[value.trim().toLowerCase()] || value;
+  return UI_COPY[state.locale].values[normalizeKey(value)] || value;
+}
+
+function localizeAttribute(attributeKey, fallbackLabel) {
+  return UI_COPY[state.locale].attributes[attributeKey] || fallbackLabel || attributeKey;
+}
+
+function setLocale(locale, { persist = true } = {}) {
+  if (!SUPPORTED_LOCALES.includes(locale) || locale === state.locale && persist === false && state.metadata == null) {
+    applyStaticTranslations();
+    updateLocaleButtons();
+    refreshDynamicCopy();
+    return;
+  }
+
+  state.locale = locale;
+  if (persist) {
+    persistLocale(locale);
+  }
+
+  applyStaticTranslations();
+  updateLocaleButtons();
+  refreshDynamicCopy();
+
+  if (state.metadata) {
+    renderMetadata(state.metadata, { preserveSelections: true });
+  }
 }
 
 function setFieldValue(field, value) {
@@ -138,7 +467,7 @@ function setFieldValue(field, value) {
 
   if (field instanceof HTMLSelectElement) {
     const selected = Array.from(field.options).find(
-      (option) => option.value.trim().toLowerCase() === String(value).trim().toLowerCase(),
+      (option) => normalizeKey(option.value) === normalizeKey(value),
     );
     if (!selected) {
       return false;
@@ -150,6 +479,25 @@ function setFieldValue(field, value) {
 
   field.value = value;
   return true;
+}
+
+function snapshotFormState() {
+  const designFields = {};
+  DESIGN_FIELDS.forEach((fieldName) => {
+    designFields[fieldName] = dom.designFields[fieldName]?.value || DEFAULT_DESIGN_VALUES[fieldName];
+  });
+
+  return {
+    language: dom.language.value,
+    duration: dom.duration.value,
+    speed: dom.speed.value,
+    numSteps: dom.numSteps.value,
+    guidanceScale: dom.guidanceScale.value,
+    denoise: dom.denoise.checked,
+    preprocessPrompt: dom.preprocessPrompt.checked,
+    postprocessOutput: dom.postprocessOutput.checked,
+    designFields,
+  };
 }
 
 function updateRangeLabels() {
@@ -170,7 +518,7 @@ function createVoiceField(attribute) {
   wrapper.className = "field";
 
   const title = document.createElement("span");
-  title.textContent = ATTRIBUTE_LABELS[attribute.key] || attribute.label;
+  title.textContent = localizeAttribute(attribute.key, attribute.label);
 
   const select = document.createElement("select");
   select.id = attribute.key;
@@ -181,7 +529,10 @@ function createVoiceField(attribute) {
   return { wrapper, select };
 }
 
-function renderMetadata(metadata) {
+function renderMetadata(metadata, { preserveSelections = false } = {}) {
+  const preserved = preserveSelections ? snapshotFormState() : null;
+  state.metadata = metadata;
+
   dom.language.innerHTML = "";
   metadata.languages.forEach((language) => dom.language.appendChild(createOption(language)));
 
@@ -193,18 +544,24 @@ function renderMetadata(metadata) {
     dom.designAttributes.appendChild(wrapper);
   });
 
-  setFieldValue(dom.language, DEFAULT_LANGUAGE) || setFieldValue(dom.language, metadata.defaults.language);
-  setFieldValue(dom.duration, metadata.defaults.duration ?? "");
+  setFieldValue(dom.language, preserved?.language) ||
+    setFieldValue(dom.language, DEFAULT_TTS_LANGUAGE) ||
+    setFieldValue(dom.language, metadata.defaults.language);
+
+  setFieldValue(dom.duration, preserved?.duration ?? metadata.defaults.duration ?? "");
+
   DESIGN_FIELDS.forEach((fieldName) => {
-    setFieldValue(dom.designFields[fieldName], DEFAULT_DESIGN_VALUES[fieldName]);
+    setFieldValue(dom.designFields[fieldName], preserved?.designFields[fieldName]) ||
+      setFieldValue(dom.designFields[fieldName], DEFAULT_DESIGN_VALUES[fieldName]) ||
+      setFieldValue(dom.designFields[fieldName], "Auto");
   });
 
-  setFieldValue(dom.speed, metadata.defaults.speed ?? 1.0);
-  setFieldValue(dom.numSteps, metadata.defaults.num_steps ?? 32);
-  setFieldValue(dom.guidanceScale, metadata.defaults.guidance_scale ?? 2.0);
-  dom.denoise.checked = metadata.defaults.denoise;
-  dom.preprocessPrompt.checked = metadata.defaults.preprocess_prompt;
-  dom.postprocessOutput.checked = metadata.defaults.postprocess_output;
+  setFieldValue(dom.speed, preserved?.speed ?? metadata.defaults.speed ?? 1.0);
+  setFieldValue(dom.numSteps, preserved?.numSteps ?? metadata.defaults.num_steps ?? 32);
+  setFieldValue(dom.guidanceScale, preserved?.guidanceScale ?? metadata.defaults.guidance_scale ?? 2.0);
+  dom.denoise.checked = preserved?.denoise ?? metadata.defaults.denoise;
+  dom.preprocessPrompt.checked = preserved?.preprocessPrompt ?? metadata.defaults.preprocess_prompt;
+  dom.postprocessOutput.checked = preserved?.postprocessOutput ?? metadata.defaults.postprocess_output;
   updateRangeLabels();
 }
 
@@ -255,28 +612,40 @@ function getFilename(headerValue) {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+function localizeKnownBackendStatus(status) {
+  if (!status) {
+    return null;
+  }
+
+  if (normalizeKey(status) === "done.") {
+    return "status.done";
+  }
+
+  return null;
+}
+
 async function loadMetadata() {
-  setApiStatus("Завантаження параметрів...", "loading");
+  setApiStatusFromKey("api.loading", "loading");
 
   try {
     const response = await fetch(`${API_BASE}/meta`);
     if (!response.ok) {
-      throw new Error("Не вдалося отримати конфігурацію TTS.");
+      throw new Error(translate("status.metadataError"));
     }
 
     const metadata = await response.json();
     renderMetadata(metadata);
-    setApiStatus(`Локальний бекенд готовий. Доступно мов: ${metadata.languages.length}.`, "ready");
+    setApiStatusFromKey("api.ready", "ready", { count: metadata.languages.length });
   } catch (error) {
-    setApiStatus("Конфігурація недоступна.", "error");
-    setStatus(error.message || "Не вдалося завантажити параметри.");
+    setApiStatusFromKey("api.unavailable", "error");
+    setStatus(error.message || translate("status.metadataError"));
   }
 }
 
 function buildFormData() {
   const data = new FormData();
   data.set("text", dom.text.value.trim());
-  data.set("language", dom.language.value || DEFAULT_LANGUAGE);
+  data.set("language", dom.language.value || DEFAULT_TTS_LANGUAGE);
   data.set("speed", dom.speed.value);
   data.set("num_steps", dom.numSteps.value);
   data.set("guidance_scale", dom.guidanceScale.value);
@@ -308,7 +677,7 @@ async function handleSubmit(event) {
   event.preventDefault();
   resetAudioResult();
   dom.submitButton.disabled = true;
-  setStatus("Генерую аудіо...");
+  setStatusFromKey("status.generating");
 
   try {
     const endpoint = state.mode === "design" ? "design" : "clone";
@@ -318,14 +687,20 @@ async function handleSubmit(event) {
     });
 
     if (!response.ok) {
-      const payload = await response.json().catch(() => ({ detail: "Непередбачена помилка." }));
-      throw new Error(payload.detail || "Не вдалося згенерувати аудіо.");
+      const payload = await response.json().catch(() => ({ detail: translate("status.unexpected") }));
+      throw new Error(payload.detail || translate("status.audioError"));
     }
 
     showAudioResult(await response.blob(), getFilename(response.headers.get("content-disposition")));
-    setStatus(response.headers.get("x-tts-status") || "Готово.");
+    const responseStatus = response.headers.get("x-tts-status");
+    const knownStatusKey = localizeKnownBackendStatus(responseStatus);
+    if (knownStatusKey) {
+      setStatusFromKey(knownStatusKey);
+    } else {
+      setStatus(responseStatus || translate("status.done"));
+    }
   } catch (error) {
-    setStatus(error.message || "Не вдалося згенерувати аудіо.");
+    setStatus(error.message || translate("status.audioError"));
   } finally {
     dom.submitButton.disabled = false;
   }
@@ -335,9 +710,14 @@ dom.modeButtons.forEach((button) => {
   button.addEventListener("click", () => setMode(button.dataset.mode));
 });
 
+dom.localeButtons.forEach((button) => {
+  button.addEventListener("click", () => setLocale(button.dataset.locale));
+});
+
 RANGE_FIELDS.forEach(({ input }) => input.addEventListener("input", updateRangeLabels));
 dom.form.addEventListener("submit", handleSubmit);
 
+setLocale(state.locale, { persist: false });
 setMode("design");
 updateRangeLabels();
 loadMetadata();
