@@ -1,0 +1,357 @@
+:root {
+  --bg: #f6efe5;
+  --bg-strong: #efe2d0;
+  --surface: rgba(255, 252, 247, 0.9);
+  --surface-strong: #fff9f0;
+  --line: rgba(61, 42, 22, 0.14);
+  --text: #1e1914;
+  --muted: #685746;
+  --accent: #c5531f;
+  --accent-strong: #8d3411;
+  --accent-soft: rgba(197, 83, 31, 0.12);
+  --success: #155846;
+  --warning: #885817;
+  --shadow: 0 24px 60px rgba(56, 36, 17, 0.12);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(197, 83, 31, 0.16), transparent 32%),
+    radial-gradient(circle at top right, rgba(43, 131, 120, 0.16), transparent 28%),
+    linear-gradient(180deg, var(--bg), #f8f4ee);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.page-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.page-glow {
+  position: absolute;
+  width: 24rem;
+  height: 24rem;
+  border-radius: 999px;
+  filter: blur(24px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.page-glow-left {
+  top: -8rem;
+  left: -8rem;
+  background: rgba(197, 83, 31, 0.18);
+}
+
+.page-glow-right {
+  top: 8rem;
+  right: -10rem;
+  background: rgba(43, 131, 120, 0.18);
+}
+
+.layout {
+  position: relative;
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 3rem 0 4rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero {
+  padding: 1rem 0 0.5rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.hero h1 {
+  margin: 0;
+  max-width: 15ch;
+  font-size: clamp(2.6rem, 4vw, 4.4rem);
+  line-height: 0.96;
+}
+
+.hero-copy {
+  max-width: 62ch;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.hero-meta {
+  margin-top: 1.25rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+}
+
+.status-pill-loading {
+  color: var(--warning);
+}
+
+.status-pill-ready {
+  color: var(--success);
+}
+
+.status-pill-error {
+  color: var(--accent-strong);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.composer-card,
+.result-card {
+  padding: 1.25rem;
+}
+
+.mode-switch {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.35rem;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+
+.mode-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: 160ms ease;
+}
+
+.mode-button:hover {
+  color: var(--text);
+}
+
+.mode-button.is-active {
+  background: var(--text);
+  color: #fff5e9;
+}
+
+.composer-form {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.field-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
+}
+
+.field span,
+.section-heading h2 {
+  font-weight: 600;
+}
+
+.field input:not([type="checkbox"]):not([type="range"]),
+.field textarea,
+.field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-strong);
+  color: var(--text);
+  padding: 0.85rem 0.95rem;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 7rem;
+}
+
+.field input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.field output {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.section-heading h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.section-heading p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
+.advanced-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.42);
+  padding: 0.9rem 1rem;
+}
+
+.advanced-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.advanced-panel[open] summary {
+  margin-bottom: 0.75rem;
+}
+
+.advanced-copy {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.advanced-section {
+  margin-top: 1.25rem;
+}
+
+.advanced-grid {
+  margin-top: 1rem;
+}
+
+.checkbox-field {
+  align-items: center;
+  grid-auto-flow: column;
+  justify-content: start;
+  gap: 0.65rem;
+}
+
+.checkbox-field input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--accent);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.primary-button,
+.download-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.8rem 1.15rem;
+  border-radius: 999px;
+  border: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, var(--accent), #dd7b3c);
+  color: #fff8f0;
+  font-weight: 700;
+}
+
+.primary-button:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.status-text {
+  margin: 0;
+  color: var(--muted);
+}
+
+.result-empty {
+  padding: 1rem 0;
+  color: var(--muted);
+}
+
+.result-content {
+  display: grid;
+  gap: 1rem;
+}
+
+.result-content audio {
+  width: 100%;
+}
+
+.download-link {
+  width: fit-content;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.is-hidden {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    width: min(100%, calc(100% - 1rem));
+    padding-top: 1.5rem;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    max-width: none;
+  }
+}
