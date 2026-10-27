@@ -6,10 +6,61 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from balaka.api import tts_router
+from balaka.api.routes.tts import MAX_REFERENCE_AUDIO_BYTES
 from balaka.core import Settings, get_settings
 from balaka.services import SpeechService, TTSRuntimeError
+
+
+class CloneBodyLimitMiddleware:
+    def __init__(self, app: ASGIApp, path: str, max_bytes: int) -> None:
+        self.app = app
+        self.path = path
+        self.max_bytes = max_bytes
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or scope["method"] != "POST" or scope["path"] != self.path:
+            await self.app(scope, receive, send)
+            return
+
+        too_large = JSONResponse(
+            status_code=413,
+            content={"detail": "Reference audio exceeds 20 MiB."},
+        )
+        for name, value in scope["headers"]:
+            if name.lower() == b"content-length":
+                try:
+                    if int(value) > self.max_bytes:
+                        await too_large(scope, receive, send)
+                        return
+                except ValueError:
+                    pass
+
+        body = bytearray()
+        while True:
+            message = await receive()
+            if message["type"] == "http.disconnect":
+                return
+            chunk = message.get("body", b"")
+            if len(body) + len(chunk) > self.max_bytes:
+                await too_large(scope, receive, send)
+                return
+            body.extend(chunk)
+            if not message.get("more_body", False):
+                break
+
+        replayed = False
+
+        async def replay_receive():
+            nonlocal replayed
+            if not replayed:
+                replayed = True
+                return {"type": "http.request", "body": bytes(body), "more_body": False}
+            return await receive()
+
+        await self.app(scope, replay_receive, send)
 
 
 def create_app(tts_service: SpeechService | None = None) -> FastAPI:
@@ -25,6 +76,11 @@ def create_app(tts_service: SpeechService | None = None) -> FastAPI:
     app = FastAPI(title=settings.app_name, lifespan=lifespan)
     app.state.settings = settings
     app.state.tts_service = service
+    app.add_middleware(
+        CloneBodyLimitMiddleware,
+        path=f"{settings.api_prefix}/tts/clone",
+        max_bytes=MAX_REFERENCE_AUDIO_BYTES + 1024 * 1024,
+    )
 
     @app.middleware("http")
     async def disable_browser_caching(request: Request, call_next):
@@ -73,7 +129,7 @@ def run() -> None:
     uvicorn.run(
         "balaka.main:create_app",
         factory=True,
-        host="0.0.0.0",
-        port=8000,
+        host=settings.host,
+        port=settings.port,
         reload=settings.debug,
     )

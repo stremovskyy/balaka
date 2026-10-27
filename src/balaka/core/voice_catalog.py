@@ -170,6 +170,8 @@ def build_runtime_metadata() -> TTSMetaResponse:
             "num_steps": NumericRange(min=4, max=64, step=1),
             "guidance_scale": NumericRange(min=0.0, max=4.0, step=0.1),
             "speed": NumericRange(min=0.5, max=1.5, step=0.05),
+            "pad_duration": NumericRange(min=0.0, max=1.0, step=0.05),
+            "fade_duration": NumericRange(min=0.0, max=1.0, step=0.05),
         },
         defaults=GenerationDefaults(
             language="Auto",
@@ -180,6 +182,8 @@ def build_runtime_metadata() -> TTSMetaResponse:
             duration=None,
             preprocess_prompt=True,
             postprocess_output=True,
+            pad_duration=0.1,
+            fade_duration=0.1,
         ),
         design_attributes=[
             DesignAttributeMeta(key=key, label=label, options=list(options))

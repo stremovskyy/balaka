@@ -62,8 +62,13 @@
 
           <form id="tts-form" class="composer-form">
             <div class="field-grid">
-              <label class="field field-wide">
-                <span data-i18n="composer.text.label">Text to synthesize</span>
+              <div class="field field-wide">
+                <div class="field-label-row">
+                  <label for="text" data-i18n="composer.text.label">Text to synthesize</label>
+                  <button id="show-text-help" class="secondary-button" type="button" data-i18n="composer.text.helpButton">
+                    Text tips
+                  </button>
+                </div>
                 <textarea
                   id="text"
                   name="text"
@@ -73,15 +78,20 @@
                   data-i18n-placeholder="composer.text.placeholder"
                   required
                 ></textarea>
-              </label>
+              </div>
             </div>
 
             <section class="mode-panel is-hidden" data-panel="clone">
-              <div class="section-heading">
-                <h2 data-i18n="composer.clone.heading">Voice cloning</h2>
-                <p data-i18n="composer.clone.description">
-                  Upload a clean reference recording and its transcript.
-                </p>
+              <div class="section-heading section-heading-with-action">
+                <div>
+                  <h2 data-i18n="composer.clone.heading">Voice cloning</h2>
+                  <p data-i18n="composer.clone.description">
+                    Upload a clean reference recording and its transcript.
+                  </p>
+                </div>
+                <button class="secondary-button show-api-params" type="button" data-i18n="composer.advanced.apiButton">
+                  Show API request
+                </button>
               </div>
 
               <div class="field-grid">
@@ -139,9 +149,14 @@
               </div>
 
               <section class="mode-panel advanced-section" data-panel="design">
-                <div class="section-heading">
-                  <h2 data-i18n="composer.voice.heading">Voice design</h2>
-                  <p data-i18n="composer.voice.description">Fine-tune the voice for standard TTS.</p>
+                <div class="section-heading section-heading-with-action">
+                  <div>
+                    <h2 data-i18n="composer.voice.heading">Voice design</h2>
+                    <p data-i18n="composer.voice.description">Fine-tune the voice for standard TTS.</p>
+                  </div>
+                  <button class="secondary-button show-api-params" type="button" data-i18n="composer.advanced.apiButton">
+                    Show API request
+                  </button>
                 </div>
 
                 <div class="field-grid advanced-grid" id="design-attributes"></div>
@@ -173,6 +188,16 @@
                     value="2"
                   />
                   <output id="guidance-scale-value" for="guidance-scale">2.0</output>
+                </label>
+
+                <label class="field">
+                  <span data-i18n="composer.quality.padLabel">Edge silence, sec.</span>
+                  <input id="pad-duration" name="pad_duration" type="number" min="0" max="1" step="0.05" value="0.1" required />
+                </label>
+
+                <label class="field">
+                  <span data-i18n="composer.quality.fadeLabel">Fade in/out, sec.</span>
+                  <input id="fade-duration" name="fade_duration" type="number" min="0" max="1" step="0.05" value="0.1" required />
                 </label>
 
                 <label class="field checkbox-field">
@@ -225,6 +250,80 @@
         </section>
       </main>
     </div>
+
+    <dialog id="api-params-dialog" class="api-dialog" aria-labelledby="api-dialog-title">
+      <div class="api-dialog-header">
+        <h2 id="api-dialog-title" data-i18n="apiPreview.heading">API request parameters</h2>
+        <button id="close-api-params" class="dialog-close" type="button" data-i18n-aria-label="apiPreview.closeLabel" aria-label="Close">&times;</button>
+      </div>
+      <p class="api-dialog-description" data-i18n="apiPreview.description">
+        These are the current form values. Send them as multipart/form-data to the endpoint below.
+      </p>
+      <code id="api-preview-endpoint" class="api-preview-endpoint"></code>
+
+      <div class="api-code-heading">
+        <h3 data-i18n="apiPreview.fieldsHeading">Form fields</h3>
+        <button id="copy-api-fields" class="secondary-button" type="button" data-i18n="apiPreview.copyFields">Copy fields</button>
+      </div>
+      <pre id="api-preview-fields" class="api-code"></pre>
+
+      <div class="api-code-heading">
+        <h3 data-i18n="apiPreview.curlHeading">cURL command</h3>
+        <button id="copy-api-curl" class="secondary-button" type="button" data-i18n="apiPreview.copyCurl">Copy cURL</button>
+      </div>
+      <pre id="api-preview-curl" class="api-code"></pre>
+      <p id="api-preview-note" class="api-preview-note" data-i18n="apiPreview.noteDesign">
+        Replace YOUR_TEXT with the text you want to synthesize, if it is still empty.
+      </p>
+      <p id="api-copy-status" class="api-copy-status" role="status" aria-live="polite"></p>
+    </dialog>
+
+    <dialog id="text-help-dialog" class="api-dialog text-help-dialog" aria-labelledby="text-help-title">
+      <div class="api-dialog-header">
+        <h2 id="text-help-title" data-i18n="textHelp.heading">Control speech from text</h2>
+        <button id="close-text-help" class="dialog-close" type="button" data-i18n-aria-label="textHelp.closeLabel" aria-label="Close">&times;</button>
+      </div>
+      <p class="api-dialog-description" data-i18n="textHelp.intro">
+        OmniVoice accepts plain text and a few inline controls. Results can vary by language and voice.
+      </p>
+
+      <section class="text-help-section">
+        <h3 data-i18n="textHelp.stressHeading">Stress and pronunciation</h3>
+        <p data-i18n="textHelp.stressUk">
+          Ukrainian: OmniVoice 0.2.1 does not document a reliable way to mark word stress. Accent marks, capitals, and + may be ignored; test important words in a short sample.
+        </p>
+        <p data-i18n="textHelp.stressEn">English: replace a word with CMU phonemes in brackets. Digits mark syllable stress.</p>
+        <code class="help-example">Play the [B EY1 S] guitar.</code>
+        <p data-i18n="textHelp.stressZh">Chinese: use uppercase pinyin with a tone number where needed.</p>
+        <code class="help-example">这批货打ZHE2出售。</code>
+      </section>
+
+      <section class="text-help-section">
+        <h3 data-i18n="textHelp.pauseHeading">Pauses and phrasing</h3>
+        <p data-i18n="textHelp.pauseBody">Use commas, periods, question marks, and ellipses to suggest natural phrasing.</p>
+        <code class="help-example" data-i18n="textHelp.pauseExample">Hello, friends. Today... we begin.</code>
+        <p data-i18n="textHelp.pauseLimit">
+          There is no documented [pause], &lt;break&gt;, or SSML command for an exact pause inside speech. Edge silence is controlled separately by “Edge silence” in generation settings.
+        </p>
+      </section>
+
+      <section class="text-help-section">
+        <h3 data-i18n="textHelp.tagsHeading">Expressive sounds</h3>
+        <p data-i18n="textHelp.tagsBody">Insert supported tags directly into the text. Start with [laughter] or [sigh].</p>
+        <code class="help-example" data-i18n="textHelp.tagsExample">That was funny [laughter].</code>
+        <p data-i18n="textHelp.tagsListLabel">All documented tags:</p>
+        <code class="help-tags">[laughter] [sigh] [confirmation-en] [question-en] [question-ah] [question-oh] [question-ei] [question-yi] [surprise-ah] [surprise-oh] [surprise-wa] [surprise-yo] [dissatisfaction-hnn]</code>
+        <p data-i18n="textHelp.tagsLimit">The model may skip or vary these sounds, especially outside its strongest training languages.</p>
+      </section>
+
+      <section class="text-help-section">
+        <h3 data-i18n="textHelp.otherHeading">Numbers and voice style</h3>
+        <p data-i18n="textHelp.numbersBody">For important numbers, write the spoken words yourself; automatic number normalization is not enabled in Balaka.</p>
+        <code class="help-example" data-i18n="textHelp.numbersExample">сто двадцять три instead of 123</code>
+        <p data-i18n="textHelp.voiceBody">Use the voice and generation settings for gender, age, pitch, whisper, speed, and duration. Voice cloning follows the reference audio and its transcript.</p>
+      </section>
+
+    </dialog>
 
     <script type="module" src="./app.js"></script>
   </body>

@@ -18,6 +18,8 @@ class Settings(BaseSettings):
 
     app_name: str = "Balaka TTS"
     debug: bool = False
+    host: str = "127.0.0.1"
+    port: int = Field(default=8000, ge=1, le=65535)
     api_prefix: str = "/api/v1"
 
     tts_model: str = "k2-fsa/OmniVoice"

@@ -15,6 +15,8 @@ class GenerationBase(BaseModel):
     duration: float | None = Field(default=None, gt=0.0, le=120.0)
     preprocess_prompt: bool = True
     postprocess_output: bool = True
+    pad_duration: float = Field(default=0.1, ge=0.0, le=1.0)
+    fade_duration: float = Field(default=0.1, ge=0.0, le=1.0)
 
     @field_validator("text")
     @classmethod
@@ -59,6 +61,8 @@ class GenerationDefaults(BaseModel):
     duration: float | None
     preprocess_prompt: bool
     postprocess_output: bool
+    pad_duration: float
+    fade_duration: float
 
 
 class DesignAttributeMeta(BaseModel):

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "balaka"
-version = "0.2.0"
+version = "0.3.0"
 description = "Local TTS backend with a separate frontend."
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
@@ -21,10 +21,11 @@ classifiers = [
     "Topic :: Multimedia :: Sound/Audio :: Speech",
 ]
 dependencies = [
-    "fastapi>=0.135,<1.0",
-    "uvicorn>=0.44,<1.0",
-    "pydantic-settings>=2.13,<3.0",
-    "python-multipart>=0.0.24,<1.0",
+    "fastapi==0.162.0",
+    "starlette==1.10.0",
+    "uvicorn==0.54.0",
+    "pydantic-settings==2.16.1",
+    "python-multipart==0.0.32",
 ]
 
 [project.urls]
@@ -36,8 +37,16 @@ balaka = "balaka.main:run"
 
 [project.optional-dependencies]
 dev = [
-    "httpx>=0.28,<1.0",
-    "pytest>=9.0,<10.0",
+    "httpx2==2.16.0",
+    "numpy==2.4.4",
+    "pytest==9.0.2",
+]
+runtime = [
+    "omnivoice==0.2.1",
+    "torch==2.8.0",
+    "torchaudio==2.8.0",
+    "transformers==5.3.0",
+    "numpy==2.4.4",
 ]
 
 [tool.setuptools.package-dir]

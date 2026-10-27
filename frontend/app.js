@@ -32,6 +32,7 @@ const UI_COPY = {
       text: {
         label: "Text to synthesize",
         placeholder: "Enter text in Ukrainian or another language for synthesis...",
+        helpButton: "Text tips",
       },
       clone: {
         heading: "Voice cloning",
@@ -48,6 +49,7 @@ const UI_COPY = {
         durationLabel: "Duration, sec. (optional)",
         durationPlaceholder: "Auto",
         speedLabel: "Speed",
+        apiButton: "Show API request",
       },
       voice: {
         heading: "Voice design",
@@ -58,6 +60,8 @@ const UI_COPY = {
         description: "Leave these values unchanged unless you are testing the model manually.",
         stepsLabel: "Generation steps",
         guidanceLabel: "Guidance scale",
+        padLabel: "Edge silence, sec.",
+        fadeLabel: "Fade in/out, sec.",
         denoiseLabel: "Denoise audio",
         preprocessLabel: "Preprocess prompt",
         postprocessLabel: "Postprocess audio",
@@ -76,6 +80,41 @@ const UI_COPY = {
       loading: "Loading configuration...",
       unavailable: "Configuration unavailable.",
       ready: ({ count }) => `Local backend ready. ${count} ${count === 1 ? "language" : "languages"} available.`,
+    },
+    apiPreview: {
+      heading: "API request parameters",
+      closeLabel: "Close",
+      description: "These are the current form values. Send them as multipart/form-data to the endpoint below.",
+      fieldsHeading: "Form fields",
+      copyFields: "Copy fields",
+      curlHeading: "cURL command",
+      copyCurl: "Copy cURL",
+      noteDesign: "Replace YOUR_TEXT with the text you want to synthesize, if it is still empty.",
+      noteClone: "Replace placeholder text and the /path/to/... audio path before running the command.",
+      copied: "Copied to clipboard.",
+      copyFailed: "Could not copy. Select the text above and copy it manually.",
+    },
+    textHelp: {
+      heading: "Control speech from text",
+      closeLabel: "Close",
+      intro: "OmniVoice accepts plain text and a few inline controls. Results can vary by language and voice.",
+      stressHeading: "Stress and pronunciation",
+      stressUk: "Ukrainian: OmniVoice 0.2.1 has no documented, reliable word-stress markup. Accent marks, capitals, and + may be ignored. Test important words in a short sample.",
+      stressEn: "English: replace a word with bracketed CMU phonemes. Digits 0, 1, and 2 mark syllable stress.",
+      stressZh: "Chinese: use uppercase pinyin with a tone number where needed.",
+      pauseHeading: "Pauses and phrasing",
+      pauseBody: "Commas, periods, question marks, and ellipses can suggest natural pauses and intonation.",
+      pauseExample: "Hello, friends. Today... we begin.",
+      pauseLimit: "There is no documented [pause], <break>, or SSML command for an exact pause inside speech. Edge silence is controlled separately by “Edge silence” in generation settings.",
+      tagsHeading: "Expressive sounds",
+      tagsBody: "Insert supported tags directly into the text. Start with [laughter] or [sigh].",
+      tagsExample: "That was funny [laughter].",
+      tagsListLabel: "All documented tags:",
+      tagsLimit: "The model may skip or vary these sounds, especially outside its strongest training languages.",
+      otherHeading: "Numbers and voice style",
+      numbersBody: "For important numbers, write the spoken words yourself; automatic number normalization is not enabled in Balaka.",
+      numbersExample: "one hundred twenty-three instead of 123",
+      voiceBody: "Use the voice and generation settings for gender, age, pitch, whisper, speed, and duration. Voice cloning follows the reference audio and its transcript.",
     },
     result: {
       heading: "Result",
@@ -167,6 +206,7 @@ const UI_COPY = {
       text: {
         label: "Текст для озвучення",
         placeholder: "Введіть текст українською або іншою мовою для синтезу...",
+        helpButton: "Підказки для тексту",
       },
       clone: {
         heading: "Клонування голосу",
@@ -183,6 +223,7 @@ const UI_COPY = {
         durationLabel: "Тривалість, сек. (необов'язково)",
         durationPlaceholder: "Авто",
         speedLabel: "Швидкість",
+        apiButton: "Параметри API",
       },
       voice: {
         heading: "Параметри голосу",
@@ -193,6 +234,8 @@ const UI_COPY = {
         description: "Залишайте ці значення без змін, якщо не тестуєте модель вручну.",
         stepsLabel: "Кроки генерації",
         guidanceLabel: "Сила підказки",
+        padLabel: "Тиша на краях, с",
+        fadeLabel: "Плавний початок/кінець, с",
         denoiseLabel: "Шумозаглушення",
         preprocessLabel: "Попередня обробка промпту",
         postprocessLabel: "Постобробка аудіо",
@@ -211,6 +254,41 @@ const UI_COPY = {
       loading: "Завантаження параметрів...",
       unavailable: "Конфігурація недоступна.",
       ready: ({ count }) => `Локальний бекенд готовий. Доступно мов: ${count}.`,
+    },
+    apiPreview: {
+      heading: "Параметри запиту API",
+      closeLabel: "Закрити",
+      description: "Це поточні значення форми. Надсилайте їх як multipart/form-data на вказаний нижче endpoint.",
+      fieldsHeading: "Поля форми",
+      copyFields: "Копіювати поля",
+      curlHeading: "Команда cURL",
+      copyCurl: "Копіювати cURL",
+      noteDesign: "Якщо текст ще порожній, замініть YOUR_TEXT на потрібний текст перед запуском.",
+      noteClone: "Перед запуском замініть текстові заглушки та шлях /path/to/... на шлях до свого аудіофайлу.",
+      copied: "Скопійовано до буфера обміну.",
+      copyFailed: "Не вдалося скопіювати. Виділіть текст вище та скопіюйте його вручну.",
+    },
+    textHelp: {
+      heading: "Як керувати озвученням через текст",
+      closeLabel: "Закрити",
+      intro: "OmniVoice читає звичайний текст і підтримує кілька вбудованих команд. Результат залежить від мови та голосу.",
+      stressHeading: "Наголос і вимова",
+      stressUk: "Українська: у OmniVoice 0.2.1 немає задокументованого надійного синтаксису для наголосу. Надрядковий знак, великі літери або + можуть ігноруватися. Перевіряйте важливі слова на короткому зразку.",
+      stressEn: "Англійська: замініть слово на CMU-фонеми в дужках. Цифри 0, 1 і 2 позначають наголос складу.",
+      stressZh: "Китайська: за потреби вставте pinyin великими літерами з номером тону.",
+      pauseHeading: "Паузи й інтонація",
+      pauseBody: "Коми, крапки, знаки питання та трикрапка можуть підказати природні паузи й інтонацію.",
+      pauseExample: "Привіт, друзі. Сьогодні... ми починаємо.",
+      pauseLimit: "Немає задокументованої команди [pause], <break> або SSML для точної паузи всередині фрази. «Тиша на краях» у налаштуваннях додається лише на початку й наприкінці.",
+      tagsHeading: "Виразні звуки",
+      tagsBody: "Вставляйте підтримувані теги прямо в текст. Почніть із [laughter] або [sigh].",
+      tagsExample: "Це смішно [laughter].",
+      tagsListLabel: "Усі задокументовані теги:",
+      tagsLimit: "Модель може пропускати або по-різному відтворювати ці звуки, особливо поза мовами, на яких її краще навчено.",
+      otherHeading: "Числа та стиль голосу",
+      numbersBody: "Важливі числа краще записувати словами: автоматичну нормалізацію чисел у Balaka не ввімкнено.",
+      numbersExample: "сто двадцять три замість 123",
+      voiceBody: "Стать, вік, висоту голосу, шепіт, швидкість і тривалість змінюйте в налаштуваннях голосу та генерації. Клонування спирається на референсне аудіо та його точний текст.",
     },
     result: {
       heading: "Результат",
@@ -295,6 +373,7 @@ const state = {
   apiStatusParams: {},
   statusKey: "status.ready",
   statusParams: {},
+  apiPreviewTrigger: null,
 };
 
 const dom = {
@@ -311,6 +390,9 @@ const dom = {
   designAttributes: document.getElementById("design-attributes"),
   language: document.getElementById("language"),
   text: document.getElementById("text"),
+  showTextHelp: document.getElementById("show-text-help"),
+  textHelpDialog: document.getElementById("text-help-dialog"),
+  closeTextHelp: document.getElementById("close-text-help"),
   duration: document.getElementById("duration"),
   speed: document.getElementById("speed"),
   speedValue: document.getElementById("speed-value"),
@@ -318,12 +400,24 @@ const dom = {
   numStepsValue: document.getElementById("num-steps-value"),
   guidanceScale: document.getElementById("guidance-scale"),
   guidanceScaleValue: document.getElementById("guidance-scale-value"),
+  padDuration: document.getElementById("pad-duration"),
+  fadeDuration: document.getElementById("fade-duration"),
   denoise: document.getElementById("denoise"),
   preprocessPrompt: document.getElementById("preprocess-prompt"),
   postprocessOutput: document.getElementById("postprocess-output"),
   referenceAudio: document.getElementById("reference-audio"),
   referenceText: document.getElementById("reference-text"),
   submitButton: document.getElementById("submit-button"),
+  showApiParams: document.querySelectorAll(".show-api-params"),
+  apiDialog: document.getElementById("api-params-dialog"),
+  closeApiParams: document.getElementById("close-api-params"),
+  apiPreviewEndpoint: document.getElementById("api-preview-endpoint"),
+  apiPreviewFields: document.getElementById("api-preview-fields"),
+  apiPreviewCurl: document.getElementById("api-preview-curl"),
+  apiPreviewNote: document.getElementById("api-preview-note"),
+  copyApiFields: document.getElementById("copy-api-fields"),
+  copyApiCurl: document.getElementById("copy-api-curl"),
+  apiCopyStatus: document.getElementById("api-copy-status"),
   designFields: {},
 };
 
@@ -493,6 +587,8 @@ function snapshotFormState() {
     speed: dom.speed.value,
     numSteps: dom.numSteps.value,
     guidanceScale: dom.guidanceScale.value,
+    padDuration: dom.padDuration.value,
+    fadeDuration: dom.fadeDuration.value,
     denoise: dom.denoise.checked,
     preprocessPrompt: dom.preprocessPrompt.checked,
     postprocessOutput: dom.postprocessOutput.checked,
@@ -559,6 +655,8 @@ function renderMetadata(metadata, { preserveSelections = false } = {}) {
   setFieldValue(dom.speed, preserved?.speed ?? metadata.defaults.speed ?? 1.0);
   setFieldValue(dom.numSteps, preserved?.numSteps ?? metadata.defaults.num_steps ?? 32);
   setFieldValue(dom.guidanceScale, preserved?.guidanceScale ?? metadata.defaults.guidance_scale ?? 2.0);
+  setFieldValue(dom.padDuration, preserved?.padDuration ?? metadata.defaults.pad_duration ?? 0.1);
+  setFieldValue(dom.fadeDuration, preserved?.fadeDuration ?? metadata.defaults.fade_duration ?? 0.1);
   dom.denoise.checked = preserved?.denoise ?? metadata.defaults.denoise;
   dom.preprocessPrompt.checked = preserved?.preprocessPrompt ?? metadata.defaults.preprocess_prompt;
   dom.postprocessOutput.checked = preserved?.postprocessOutput ?? metadata.defaults.postprocess_output;
@@ -649,6 +747,8 @@ function buildFormData() {
   data.set("speed", dom.speed.value);
   data.set("num_steps", dom.numSteps.value);
   data.set("guidance_scale", dom.guidanceScale.value);
+  data.set("pad_duration", dom.padDuration.value);
+  data.set("fade_duration", dom.fadeDuration.value);
   data.set("denoise", String(dom.denoise.checked));
   data.set("preprocess_prompt", String(dom.preprocessPrompt.checked));
   data.set("postprocess_output", String(dom.postprocessOutput.checked));
@@ -671,6 +771,59 @@ function buildFormData() {
   }
   data.set("reference_text", dom.referenceText.value.trim());
   return data;
+}
+
+function getApiPreviewFields() {
+  const fields = Array.from(buildFormData().entries())
+    .filter(([, value]) => !(value instanceof File))
+    .map(([name, value]) => ({
+      name,
+      value: value || (name === "text" ? "YOUR_TEXT" : name === "reference_text" ? "YOUR_REFERENCE_TEXT" : ""),
+      isFile: false,
+    }));
+
+  if (state.mode === "clone") {
+    const filename = dom.referenceAudio.files[0]?.name || "reference.wav";
+    const audioField = { name: "reference_audio", value: `/path/to/${filename}`, isFile: true };
+    const referenceTextIndex = fields.findIndex(({ name }) => name === "reference_text");
+    fields.splice(referenceTextIndex, 0, audioField);
+  }
+
+  return fields;
+}
+
+function shellQuote(value) {
+  return `'${String(value).replaceAll("'", `'"'"'`)}'`;
+}
+
+function showApiPreview(event) {
+  state.apiPreviewTrigger = event.currentTarget;
+  const endpoint = `${window.location.origin}${API_BASE}/${state.mode}`;
+  const fields = getApiPreviewFields();
+  const formValues = Object.fromEntries(fields.map(({ name, value }) => [name, value]));
+  const curlParts = [
+    `curl --request POST ${shellQuote(endpoint)}`,
+    ...fields.map(({ name, value, isFile }) =>
+      `${isFile ? "--form" : "--form-string"} ${shellQuote(`${name}=${isFile ? `@${value}` : value}`)}`,
+    ),
+    `--output ${shellQuote(state.mode === "design" ? "balaka-design.wav" : "balaka-clone.wav")}`,
+  ];
+
+  dom.apiPreviewEndpoint.textContent = `POST ${endpoint}`;
+  dom.apiPreviewFields.textContent = JSON.stringify(formValues, null, 2);
+  dom.apiPreviewCurl.textContent = curlParts.join(" \\\n  ");
+  dom.apiPreviewNote.textContent = translate(state.mode === "design" ? "apiPreview.noteDesign" : "apiPreview.noteClone");
+  dom.apiCopyStatus.textContent = "";
+  dom.apiDialog.showModal();
+}
+
+async function copyApiPreview(node) {
+  try {
+    await navigator.clipboard.writeText(node.textContent);
+    dom.apiCopyStatus.textContent = translate("apiPreview.copied");
+  } catch {
+    dom.apiCopyStatus.textContent = translate("apiPreview.copyFailed");
+  }
 }
 
 async function handleSubmit(event) {
@@ -716,6 +869,14 @@ dom.localeButtons.forEach((button) => {
 
 RANGE_FIELDS.forEach(({ input }) => input.addEventListener("input", updateRangeLabels));
 dom.form.addEventListener("submit", handleSubmit);
+dom.showApiParams.forEach((button) => button.addEventListener("click", showApiPreview));
+dom.closeApiParams.addEventListener("click", () => dom.apiDialog.close());
+dom.apiDialog.addEventListener("close", () => state.apiPreviewTrigger?.focus());
+dom.copyApiFields.addEventListener("click", () => copyApiPreview(dom.apiPreviewFields));
+dom.copyApiCurl.addEventListener("click", () => copyApiPreview(dom.apiPreviewCurl));
+dom.showTextHelp.addEventListener("click", () => dom.textHelpDialog.showModal());
+dom.closeTextHelp.addEventListener("click", () => dom.textHelpDialog.close());
+dom.textHelpDialog.addEventListener("close", () => dom.showTextHelp.focus());
 
 setLocale(state.locale, { persist: false });
 setMode("design");

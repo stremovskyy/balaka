@@ -12,11 +12,7 @@ python -m pip install --upgrade pip
 pip install -e ".[dev]"
 ```
 
-If you want to run real local inference, also install the runtime dependencies described in [README.md](README.md):
-
-- `torch`
-- `torchaudio`
-- `omnivoice`
+If you want to run real local inference, install the matched `torch`/`torchaudio` pair for your platform as described in [README.md](README.md), then run `pip install -e ".[dev,runtime]"`. The runtime extra pins OmniVoice and the PyTorch pair.
 
 ## Development workflow
 

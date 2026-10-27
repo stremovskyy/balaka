@@ -232,6 +232,18 @@ select {
   grid-column: 1 / -1;
 }
 
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.field-label-row label {
+  font-weight: 600;
+}
+
 .field span,
 .section-heading h2 {
   font-weight: 600;
@@ -274,6 +286,14 @@ select {
   color: var(--muted);
 }
 
+.section-heading-with-action {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .advanced-panel {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
@@ -294,6 +314,20 @@ select {
   margin: 0 0 1rem;
   color: var(--muted);
   line-height: 1.55;
+}
+
+.secondary-button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  color: var(--accent-strong);
+  padding: 0.55rem 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  background: var(--accent-soft);
 }
 
 .advanced-section {
@@ -372,6 +406,121 @@ select {
   background: var(--accent-soft);
   color: var(--accent-strong);
   font-weight: 600;
+}
+
+.api-dialog {
+  width: min(760px, calc(100vw - 2rem));
+  max-height: min(88vh, 900px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: #fffaf3;
+  color: var(--text);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.api-dialog::backdrop {
+  background: rgba(30, 25, 20, 0.52);
+}
+
+.api-dialog-header,
+.api-code-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.api-dialog-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.dialog-close {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.api-dialog-description,
+.api-preview-note {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.api-preview-endpoint {
+  display: block;
+  overflow-x: auto;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+}
+
+.api-code-heading {
+  margin-top: 1.25rem;
+}
+
+.api-code-heading h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.api-code {
+  max-height: 16rem;
+  overflow: auto;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  background: #211b17;
+  color: #fff5e9;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.api-copy-status {
+  min-height: 1.3rem;
+  margin-bottom: 0;
+  color: var(--success);
+}
+
+.text-help-section {
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.text-help-section h3 {
+  margin: 0.55rem 0;
+  font-size: 1rem;
+}
+
+.text-help-section p {
+  margin: 0.6rem 0;
+  line-height: 1.5;
+}
+
+.help-example,
+.help-tags {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--text);
+  padding: 0.65rem 0.8rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.help-tags {
+  background: #f2e8da;
 }
 
 .is-hidden {

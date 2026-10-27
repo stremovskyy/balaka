@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import TypeVar
@@ -15,6 +14,7 @@ from balaka.services import SpeechService, TTSRuntimeError
 
 router = APIRouter(prefix="/tts", tags=["tts"])
 RequestModel = TypeVar("RequestModel", bound=BaseModel)
+MAX_REFERENCE_AUDIO_BYTES = 20 * 1024 * 1024
 
 
 def get_service(request: Request) -> SpeechService:
@@ -33,10 +33,21 @@ def build_audio_response(result: AudioResult) -> Response:
 
 def persist_upload(upload: UploadFile) -> Path:
     suffix = Path(upload.filename or "reference.wav").suffix or ".wav"
-    with NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
-        upload.file.seek(0)
-        shutil.copyfileobj(upload.file, tmp_file)
-        return Path(tmp_file.name)
+    tmp_file = NamedTemporaryFile(delete=False, suffix=suffix)
+    temp_path = Path(tmp_file.name)
+    try:
+        with tmp_file:
+            upload.file.seek(0)
+            size = 0
+            while chunk := upload.file.read(1024 * 1024):
+                size += len(chunk)
+                if size > MAX_REFERENCE_AUDIO_BYTES:
+                    raise TTSRuntimeError("Reference audio exceeds 20 MiB.", status_code=413)
+                tmp_file.write(chunk)
+    except Exception:
+        temp_path.unlink(missing_ok=True)
+        raise
+    return temp_path
 
 
 def parse_request(model_cls: type[RequestModel], **payload: object) -> RequestModel:
@@ -63,6 +74,8 @@ def synthesize_design(
     duration: float | None = Form(None),
     preprocess_prompt: bool = Form(True),
     postprocess_output: bool = Form(True),
+    pad_duration: float = Form(0.1),
+    fade_duration: float = Form(0.1),
     gender: str = Form("Auto"),
     age: str = Form("Auto"),
     pitch: str = Form("Auto"),
@@ -81,6 +94,8 @@ def synthesize_design(
         duration=duration,
         preprocess_prompt=preprocess_prompt,
         postprocess_output=postprocess_output,
+        pad_duration=pad_duration,
+        fade_duration=fade_duration,
         gender=gender,
         age=age,
         pitch=pitch,
@@ -107,9 +122,13 @@ def synthesize_clone(
     duration: float | None = Form(None),
     preprocess_prompt: bool = Form(True),
     postprocess_output: bool = Form(True),
+    pad_duration: float = Form(0.1),
+    fade_duration: float = Form(0.1),
 ) -> Response:
     if not reference_audio.filename:
         raise TTSRuntimeError("Reference audio is required.", status_code=422)
+    if reference_audio.size is not None and reference_audio.size > MAX_REFERENCE_AUDIO_BYTES:
+        raise TTSRuntimeError("Reference audio exceeds 20 MiB.", status_code=413)
 
     payload = parse_request(
         CloneRequest,
@@ -123,6 +142,8 @@ def synthesize_clone(
         duration=duration,
         preprocess_prompt=preprocess_prompt,
         postprocess_output=postprocess_output,
+        pad_duration=pad_duration,
+        fade_duration=fade_duration,
     )
 
     temp_audio_path = persist_upload(reference_audio)

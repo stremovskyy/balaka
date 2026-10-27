@@ -24,6 +24,7 @@ class SpeechService:
         self.settings = settings
         self._runtime: dict[str, Any] | None = None
         self._runtime_lock = Lock()
+        self._generation_lock = Lock()
 
     def get_metadata(self) -> TTSMetaResponse:
         return build_runtime_metadata()
@@ -54,31 +55,38 @@ class SpeechService:
         )
 
     def _synthesize(self, payload: DesignRequest | CloneRequest, prefix: str, **extra_args: Any) -> AudioResult:
-        runtime = self._get_runtime()
-        model = runtime["model"]
-
+        if not self._generation_lock.acquire(blocking=False):
+            raise TTSRuntimeError("TTS engine is busy. Try again shortly.", status_code=503)
         try:
-            generated = model.generate(
-                text=payload.text,
-                language=self._normalize_language(payload.language),
-                duration=payload.duration,
-                speed=payload.speed,
-                num_step=payload.num_steps,
-                guidance_scale=payload.guidance_scale,
-                denoise=payload.denoise,
-                preprocess_prompt=payload.preprocess_prompt,
-                postprocess_output=payload.postprocess_output,
-                **extra_args,
-            )
-        except Exception as exc:
-            raise TTSRuntimeError(f"Local TTS generation failed: {exc}") from exc
+            runtime = self._get_runtime()
+            model = runtime["model"]
 
-        return self._build_audio_result(
-            generated,
-            sampling_rate=runtime["sampling_rate"],
-            np_module=runtime["np"],
-            prefix=prefix,
-        )
+            try:
+                generated = model.generate(
+                    text=payload.text,
+                    language=self._normalize_language(payload.language),
+                    duration=payload.duration,
+                    speed=payload.speed,
+                    num_step=payload.num_steps,
+                    guidance_scale=payload.guidance_scale,
+                    denoise=payload.denoise,
+                    preprocess_prompt=payload.preprocess_prompt,
+                    postprocess_output=payload.postprocess_output,
+                    pad_duration=payload.pad_duration,
+                    fade_duration=payload.fade_duration,
+                    **extra_args,
+                )
+            except Exception as exc:
+                raise TTSRuntimeError(f"Local TTS generation failed: {exc}") from exc
+
+            return self._build_audio_result(
+                generated,
+                sampling_rate=runtime["sampling_rate"],
+                np_module=runtime["np"],
+                prefix=prefix,
+            )
+        finally:
+            self._generation_lock.release()
 
     def _get_runtime(self) -> dict[str, Any]:
         with self._runtime_lock:
@@ -90,7 +98,7 @@ class SpeechService:
         if sys.version_info >= (3, 14):
             raise TTSRuntimeError(
                 "Local TTS runtime requires Python 3.12 or 3.13. "
-                "Torch 2.8 is not available for Python 3.14 yet.",
+                "The pinned Torch 2.8 runtime is not available for Python 3.14.",
                 status_code=500,
             )
 
@@ -180,7 +188,7 @@ class SpeechService:
         if not generated_audio:
             raise TTSRuntimeError("Configured TTS runtime did not return audio.", status_code=502)
 
-        audio_bytes = self._tensor_to_wav_bytes(generated_audio[0], sampling_rate, np_module)
+        audio_bytes = self._audio_to_wav_bytes(generated_audio[0], sampling_rate, np_module)
         return AudioResult(
             audio_bytes=audio_bytes,
             media_type="audio/wav",
@@ -188,14 +196,22 @@ class SpeechService:
             status="Done.",
         )
 
-    def _tensor_to_wav_bytes(self, tensor: Any, sampling_rate: int, np_module: Any) -> bytes:
-        waveform = tensor.detach().cpu()
-        if waveform.dim() == 2 and waveform.size(0) == 1:
-            waveform = waveform.squeeze(0)
-        if waveform.dim() != 1:
+    def _audio_to_wav_bytes(self, audio: Any, sampling_rate: int, np_module: Any) -> bytes:
+        if hasattr(audio, "detach"):
+            audio = audio.detach().cpu().numpy()
+        waveform = np_module.asarray(audio)
+        if waveform.ndim == 2 and waveform.shape[0] == 1:
+            waveform = waveform[0]
+        if waveform.ndim != 1:
             raise TTSRuntimeError("Generated audio has an unexpected shape.", status_code=502)
+        if waveform.size == 0 or not np_module.issubdtype(waveform.dtype, np_module.floating):
+            raise TTSRuntimeError("Generated audio is empty or invalid.", status_code=502)
+        if not np_module.isfinite(waveform).all():
+            raise TTSRuntimeError("Generated audio contains non-finite samples.", status_code=502)
+        if sampling_rate <= 0:
+            raise TTSRuntimeError("Generated audio has an invalid sampling rate.", status_code=502)
 
-        pcm = (waveform.clamp(-1.0, 1.0).numpy() * 32767.0).astype(np_module.int16)
+        pcm = (np_module.clip(waveform, -1.0, 1.0) * 32767.0).astype(np_module.int16)
 
         buffer = io.BytesIO()
         with wave.open(buffer, "wb") as wav_file:

@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/stremovskyy/balaka/actions/workflows/ci.yml/badge.svg)](https://github.com/stremovskyy/balaka/actions/workflows/ci.yml)
 
+[Latest release: v0.3.0](https://github.com/stremovskyy/balaka/releases/tag/v0.3.0) · [Release notes](docs/promotion/release-v0.3.0.md)
+
 Local-only TTS application with a FastAPI backend and a separate static frontend.
 
 Balaka runs the speech model on your machine. There is no remote inference fallback, no Hugging Face Space dependency at request time, and no hidden service layer behind the API. The current default model is `k2-fsa/OmniVoice`.
@@ -23,7 +25,7 @@ Balaka runs the speech model on your machine. There is no remote inference fallb
 - Python `3.13`
 - FastAPI
 - PyTorch `2.8`
-- `omnivoice==0.1.2`
+- `omnivoice==0.2.1`
 - Plain HTML, CSS, and JavaScript
 
 ## Requirements
@@ -32,7 +34,9 @@ Balaka runs the speech model on your machine. There is no remote inference fallb
 - One project virtualenv named `.venv`
 - Enough RAM or VRAM for the selected TTS model
 
-`torch 2.8` is not available for Python `3.14`, so this project intentionally targets Python `3.13`.
+This release keeps Python `3.13` with the tested `torch`/`torchaudio` `2.8.0` pair. The pinned pair does not support Python `3.14`.
+
+OmniVoice `0.2.1` changes the inference implementation used by Balaka. The default model ID and published model weights remain the same, but generated voices may sound different from Balaka `0.2.0`, particularly in voice-design mode where each synthesis can vary.
 
 ## Quick start
 
@@ -51,16 +55,14 @@ Apple Silicon:
 
 ```bash
 pip install torch==2.8.0 torchaudio==2.8.0
-pip install omnivoice==0.1.2
-pip install -e ".[dev]"
+pip install -e ".[dev,runtime]"
 ```
 
 NVIDIA CUDA example:
 
 ```bash
 pip install torch==2.8.0+cu128 torchaudio==2.8.0+cu128 --extra-index-url https://download.pytorch.org/whl/cu128
-pip install omnivoice==0.1.2
-pip install -e ".[dev]"
+pip install -e ".[dev,runtime]"
 ```
 
 Create local configuration:
@@ -102,6 +104,8 @@ make smoke
 
 The interface defaults to English. Use the `EN` / `UA` toggle in the header to switch the frontend locale; the selection is stored in the browser.
 
+Use **Text tips** beside the synthesis text field for examples of punctuation, expressive tags, English CMU phonemes, and Chinese pinyin. The dialog also explains the limits of Ukrainian stress marks and exact internal pauses in OmniVoice 0.2.1.
+
 The default frontend setup is tuned for a convenient out-of-the-box result:
 
 - Language: `Ukrainian`
@@ -125,6 +129,8 @@ Recommended `.env` values:
 
 ```env
 BALAKA_DEBUG=false
+BALAKA_HOST=127.0.0.1
+BALAKA_PORT=8000
 BALAKA_TTS_MODEL=k2-fsa/OmniVoice
 BALAKA_TTS_DEVICE=auto
 BALAKA_TTS_DTYPE=auto
@@ -136,7 +142,9 @@ What each variable does:
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `BALAKA_DEBUG` | `false` | Runs the app without autoreload. This avoids reloading the large model on every source change. |
+| `BALAKA_DEBUG` | `false` | Enables autoreload when set to `true`; keep it off to avoid reloading the large model on every source change. |
+| `BALAKA_HOST` | `127.0.0.1` | Network address to listen on. Set another address only when access from other devices is intended. |
+| `BALAKA_PORT` | `8000` | HTTP port (1–65535). |
 | `BALAKA_TTS_MODEL` | `k2-fsa/OmniVoice` | Hugging Face model ID or a local path to a compatible model directory. |
 | `BALAKA_TTS_DEVICE` | `auto` | Picks `cuda`, then `mps`, then `cpu`, unless you force a specific device. |
 | `BALAKA_TTS_DTYPE` | `auto` | Uses `float16` on GPU or MPS and `float32` on CPU. |
@@ -168,6 +176,12 @@ Available endpoints:
 - `POST /api/v1/tts/clone`
 
 Both synthesis endpoints return raw WAV bytes in the response body.
+
+To reuse settings from the web UI in an API client, click **Show API request** beside **Voice design** in TTS mode or **Voice cloning** in clone mode. The dialog shows the current `multipart/form-data` field values and a copyable `curl` command. For voice cloning, replace the example reference audio path with a real local path.
+
+OmniVoice 0.2.1 adds `pad_duration` (silence at each edge) and `fade_duration` (fade in and out), in seconds. Both default to `0.1` and can be set from `0` to `1` in the Advanced settings for either generation mode, or passed as form fields to either API endpoint.
+
+The default listener accepts connections only from this machine. The clone endpoint accepts reference audio up to 20 MiB and returns HTTP `413` for larger files. Only one generation runs at a time per process; another request receives HTTP `503` and can be retried shortly.
 
 ### Example: voice design
 
@@ -242,7 +256,7 @@ The frontend is intentionally build-free. Static files are served directly by Fa
 
 ### App fails on Python 3.14
 
-This is expected. Recreate `.venv` with Python `3.13`.
+The pinned `torch`/`torchaudio` pair does not support Python `3.14`. Recreate `.venv` with Python `3.13`.
 
 ### Startup mentions Hugging Face
 

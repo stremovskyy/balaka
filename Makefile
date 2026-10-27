@@ -8,7 +8,7 @@ install:
 
 install-runtime:
 	$(PIP) install torch==2.8.0 torchaudio==2.8.0
-	$(PIP) install omnivoice==0.1.2
+	$(PIP) install -e ".[runtime]"
 
 run:
 	$(PYTHON) main.py

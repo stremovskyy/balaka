@@ -2,7 +2,8 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from balaka.main import create_app
+from balaka.core import Settings
+from balaka.main import create_app, run
 from balaka.schemas import (
     AudioResult,
     CloneRequest,
@@ -37,6 +38,8 @@ class FakeSpeechService:
                 duration=None,
                 preprocess_prompt=True,
                 postprocess_output=True,
+                pad_duration=0.1,
+                fade_duration=0.1,
             ),
             design_attributes=[
                 DesignAttributeMeta(key="gender", label="Gender", options=["Auto", "Male / 男"]),
@@ -117,6 +120,8 @@ def test_design_endpoint_returns_audio() -> None:
             "denoise": "true",
             "preprocess_prompt": "true",
             "postprocess_output": "true",
+            "pad_duration": "0.2",
+            "fade_duration": "0.05",
             "gender": "Auto",
             "age": "Auto",
             "pitch": "Auto",
@@ -131,6 +136,8 @@ def test_design_endpoint_returns_audio() -> None:
     assert response.content == b"RIFF-design"
     assert service.design_payload is not None
     assert service.design_payload.text == "Hello world"
+    assert service.design_payload.pad_duration == 0.2
+    assert service.design_payload.fade_duration == 0.05
 
 
 def test_clone_endpoint_accepts_reference_audio() -> None:
@@ -149,6 +156,8 @@ def test_clone_endpoint_accepts_reference_audio() -> None:
             "denoise": "true",
             "preprocess_prompt": "true",
             "postprocess_output": "true",
+            "pad_duration": "0",
+            "fade_duration": "0",
         },
         files={"reference_audio": ("voice.wav", b"audio-bytes", "audio/wav")},
     )
@@ -157,4 +166,37 @@ def test_clone_endpoint_accepts_reference_audio() -> None:
     assert response.headers["content-type"].startswith("audio/wav")
     assert response.content == b"RIFF-clone"
     assert service.clone_payload is not None
+    assert service.clone_payload.pad_duration == 0
+    assert service.clone_payload.fade_duration == 0
     assert service.clone_audio_path is not None
+    assert not service.clone_audio_path.exists()
+
+
+def test_clone_rejects_reference_audio_over_20_mib() -> None:
+    client, service = make_client()
+
+    response = client.post(
+        "/api/v1/tts/clone",
+        data={"text": "Hello", "reference_text": "Hello"},
+        files={"reference_audio": ("voice.wav", b"x" * (20 * 1024 * 1024 + 1), "audio/wav")},
+    )
+
+    assert response.status_code == 413
+    assert response.json() == {"detail": "Reference audio exceeds 20 MiB."}
+    assert service.clone_payload is None
+
+
+def test_run_uses_loopback_default(monkeypatch) -> None:
+    import uvicorn
+
+    kwargs = {}
+    monkeypatch.delenv("BALAKA_HOST", raising=False)
+    monkeypatch.delenv("BALAKA_PORT", raising=False)
+    settings = Settings(_env_file=None)
+    monkeypatch.setattr("balaka.main.get_settings", lambda: settings)
+    monkeypatch.setattr(uvicorn, "run", lambda *args, **options: kwargs.update(options))
+
+    run()
+
+    assert kwargs["host"] == "127.0.0.1"
+    assert kwargs["port"] == 8000
