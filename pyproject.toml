@@ -45,7 +45,7 @@ runtime = [
     "omnivoice==0.2.1",
     "torch==2.8.0",
     "torchaudio==2.8.0",
-    "transformers==5.3.0",
+    "transformers==5.10.1",
     "numpy==2.4.4",
 ]
 
